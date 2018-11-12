@@ -898,7 +898,10 @@ class Script < ActiveRecord::Base
   # the suffix to the name of each level. Mark the new script as hidden, and
   # copy any translations and other metadata associated with the original script.
   def clone_with_suffix(new_suffix)
-    new_name = "#{name}-#{new_suffix}"
+    # strip existing year suffix before adding a new one
+    m = /^(.*)-([0-9]{4})$/.match(name)
+    base_name = m ? m[1] : name
+    new_name = "#{base_name}-#{new_suffix}"
 
     script_filename = "#{Script.script_directory}/#{name}.script"
     scripts, _ = Script.setup([script_filename], new_suffix: new_suffix)
