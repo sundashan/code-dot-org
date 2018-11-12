@@ -910,6 +910,9 @@ class Script < ActiveRecord::Base
       # course selector version dropdown
       family_name: nil
     }
+    if /^[0-9]{4}$/ =~ (new_suffix)
+      new_properties[:version_year] = new_suffix
+    end
     scripts, _ = Script.setup([script_filename], new_suffix: new_suffix, new_properties: new_properties)
     new_script = scripts.first
 
