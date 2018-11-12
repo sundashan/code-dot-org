@@ -694,7 +694,7 @@ class Script < ActiveRecord::Base
   # script file definitions. If new_suffix is specified, create a copy of the
   # script and any associated levels, appending new_suffix to the name when
   # copying.
-  def self.setup(custom_files, new_suffix: nil)
+  def self.setup(custom_files, new_suffix: nil, new_properties: {})
     transaction do
       scripts_to_add = []
 
@@ -716,7 +716,7 @@ class Script < ActiveRecord::Base
           wrapup_video: script_data[:wrapup_video],
           new_name: script_data[:new_name],
           family_name: script_data[:family_name],
-          properties: Script.build_property_hash(script_data)
+          properties: Script.build_property_hash(script_data).merge(new_properties)
         }, stages]
       end
 
@@ -904,7 +904,13 @@ class Script < ActiveRecord::Base
     new_name = "#{base_name}-#{new_suffix}"
 
     script_filename = "#{Script.script_directory}/#{name}.script"
-    scripts, _ = Script.setup([script_filename], new_suffix: new_suffix)
+    new_properties = {
+      is_stable: false,
+      # temporary workaround to prevent cloned scripts from showing up in the
+      # course selector version dropdown
+      family_name: nil
+    }
+    scripts, _ = Script.setup([script_filename], new_suffix: new_suffix, new_properties: new_properties)
     new_script = scripts.first
 
     # Make sure we don't modify any files in unit tests.
