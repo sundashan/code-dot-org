@@ -702,7 +702,8 @@ class Script < ActiveRecord::Base
       # Load custom scripts from Script DSL format
       custom_files.map do |script|
         name = File.basename(script, '.script')
-        name += "-#{new_suffix}" if new_suffix
+        base_name = Script.base_name(name)
+        name = "#{base_name}-#{new_suffix}" if new_suffix
         script_data, i18n = ScriptDSL.parse_file(script, name)
 
         stages = script_data[:stages]
@@ -898,9 +899,6 @@ class Script < ActiveRecord::Base
   # the suffix to the name of each level. Mark the new script as hidden, and
   # copy any translations and other metadata associated with the original script.
   def clone_with_suffix(new_suffix)
-    # strip existing year suffix before adding a new one
-    m = /^(.*)-([0-9]{4})$/.match(name)
-    base_name = m ? m[1] : name
     new_name = "#{base_name}-#{new_suffix}"
 
     script_filename = "#{Script.script_directory}/#{name}.script"
@@ -924,6 +922,16 @@ class Script < ActiveRecord::Base
     end
 
     new_script
+  end
+
+  def base_name
+    Script.base_name(name)
+  end
+
+  def self.base_name(name)
+    # strip existing year suffix, if there is one
+    m = /^(.*)-([0-9]{4})$/.match(name)
+    m ? m[1] : name
   end
 
   # Creates a copy of all translations associated with this script, and adds
